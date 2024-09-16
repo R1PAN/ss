@@ -13,21 +13,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install OpenSSH Server
-        run: sudo apt-get update && sudo apt-get install -y openssh-server
-        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-server
 
       - name: Configure SSH Server
         run: |
+          sudo mkdir -p /var/run/sshd
           echo "PermitRootLogin yes" | sudo tee -a /etc/ssh/sshd_config
           echo "PasswordAuthentication yes" | sudo tee -a /etc/ssh/sshd_config
-          sudo service ssh start
-        shell: bash
+          sudo service ssh restart
 
       - name: Set root password
         run: echo "root:rootpassword" | sudo chpasswd
-        shell: bash
+
+      - name: Verify SSH Server
+        run: |
+          sudo systemctl status ssh || true
+          sudo netstat -tuln | grep :22 || true
 
       - name: Setup SSH key
         run: |
@@ -35,21 +40,16 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-        shell: bash
 
       - name: Download ngrok
         run: curl -sO https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
-        shell: bash
 
       - name: Extract ngrok
         run: tar -xvzf ngrok-v3-stable-linux-amd64.tgz
-        shell: bash
 
       - name: Set ngrok auth token
         run: ./ngrok authtoken ${{ secrets.NGROK_TOKEN }}
-        shell: bash
 
       - name: Start ngrok tunnel
         id: ngrok
         run: ./ngrok tcp 22
-        shell: bash
