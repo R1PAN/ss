@@ -3,7 +3,7 @@ name: SSH tunnel over ngrok
 on:
   push:
     branches:
-      - main
+      - r
   workflow_dispatch:
 
 jobs:
