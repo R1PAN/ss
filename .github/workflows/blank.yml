@@ -1,0 +1,62 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "r" branch
+  push:
+    branches: [ "r" ]
+  pull_request:
+    branches: [ "r" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Setup SSH key
+        run: |
+         mkdir -p ~/.ssh
+         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+         chmod 600 ~/.ssh/id_rsa
+         ssh-keyscan github.com >> ~/.ssh/known_hosts
+        shell: bash
+
+      - name: Download ngrok
+        run: curl -sO https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+        shell: bash
+
+      - name: Unzip ngrok
+        run: |
+          tar -xzf ngrok-v3-stable-linux-amd64.tgz
+          chmod +x ngrok
+          shell: bash
+
+      - name: Set ngrok auth token
+        run: ./ngrok authtoken ${{ secrets.NGROK_TOKEN }}
+        shell: bash
+
+      - name: Start ngrok tunnel and capture URL
+        id: ngrok
+        run: |
+         ./ngrok tcp 22 > ngrok.log &
+         sleep 10 # Increase wait time
+         url=$(grep -o 'tcp://[0-9a-zA-Z]*\.ngrok.io:[0-9]*' ngrok.log)
+         
+         cat ngrok.log
+         echo $url
+        shell: bash
+
+     
