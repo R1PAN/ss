@@ -46,12 +46,9 @@ jobs:
         run: ./ngrok authtoken ${{ secrets.NGROK_TOKEN }}
         shell: bash
 
-      - name: Start ngrok tunnel and capture URL
+      - name: Start ngrok tunnel
         id: ngrok
-        run: |
-         ./ngrok tcp 22 > ngrok.log &
-         url=$(grep -o 'tcp://[0-9a-zA-Z]*\.ngrok.io:[0-9]*')
-         echo $url
+        run: ./ngrok tcp 22
         shell: bash
 
      
