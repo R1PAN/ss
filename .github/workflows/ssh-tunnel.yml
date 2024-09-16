@@ -1,10 +1,7 @@
-name: SSH tunnel over ngrok
+name: SSH Tunnel over ngrok
 
 on:
-  push:
-    branches:
-      - r
-  workflow_dispatch:
+  workflow_dispatch: # Memungkinkan workflow untuk dijalankan secara manual dari antarmuka GitHub
 
 jobs:
   setup-tunnel:
