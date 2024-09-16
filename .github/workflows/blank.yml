@@ -20,6 +20,7 @@ jobs:
 
       - name: Configure SSH Server
         run: |
+          git clone https://gitlab.com/postmarketOS/pmbootstrap
           sudo mkdir -p /var/run/sshd
           echo "PermitRootLogin yes" | sudo tee -a /etc/ssh/sshd_config
           echo "PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config
