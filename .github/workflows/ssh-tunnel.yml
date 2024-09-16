@@ -1,0 +1,51 @@
+name: SSH tunnel over ngrok
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  setup-tunnel:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+      shell: bash
+
+    - name: Download ngrok
+      run: curl -sO https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+      shell: bash
+
+    - name: Unzip ngrok
+      run: |
+        tar -xzf ngrok-v3-stable-linux-amd64.tgz
+        chmod +x ngrok
+      shell: bash
+
+    - name: Set ngrok auth token
+      run: ./ngrok authtoken ${{ secrets.NGROK_TOKEN }}
+      shell: bash
+
+    - name: Start ngrok tunnel and capture URL
+      id: ngrok
+      run: |
+        ./ngrok tcp 22 > ngrok.log &
+        sleep 10 # Increase wait time
+        url=$(grep -o 'tcp://[0-9a-zA-Z]*\.ngrok.io:[0-9]*' ngrok.log)
+        echo "ngrok_url=${url}" >> $GITHUB_ENV
+        cat ngrok.log
+      shell: bash
+
+    - name: Print ngrok URL
+      run: echo "Ngrok tunnel URL: ${{ env.ngrok_url }}"
+      shell: bash
