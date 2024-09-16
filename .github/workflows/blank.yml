@@ -28,7 +28,6 @@ jobs:
 
       - name: Configure SSH Server
         run: |
-          sudo mkdir /var/run/sshd
           echo "PermitRootLogin yes" | sudo tee -a /etc/ssh/sshd_config
           echo "PasswordAuthentication yes" | sudo tee -a /etc/ssh/sshd_config
           sudo service ssh start
