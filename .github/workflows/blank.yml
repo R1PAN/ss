@@ -50,10 +50,7 @@ jobs:
         id: ngrok
         run: |
          ./ngrok tcp 22 > ngrok.log &
-         sleep 10 # Increase wait time
-         url=$(grep -o 'tcp://[0-9a-zA-Z]*\.ngrok.io:[0-9]*' ngrok.log)
-         
-         cat ngrok.log
+         url=$(grep -o 'tcp://[0-9a-zA-Z]*\.ngrok.io:[0-9]*'
          echo $url
         shell: bash
 
