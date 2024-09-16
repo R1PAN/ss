@@ -38,12 +38,9 @@ jobs:
         run: curl -sO https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
         shell: bash
 
-      - name: Unzip ngrok
-        run: |
-          tar -xvzf ngrok-v3-stable-linux-amd64.tgz
-
-          
-          shell: bash
+      - name: extract ngrok
+        run: tar -xvzf ngrok-v3-stable-linux-amd64.tgz
+        shell: bash
 
       - name: Set ngrok auth token
         run: ./ngrok authtoken ${{ secrets.NGROK_TOKEN }}
