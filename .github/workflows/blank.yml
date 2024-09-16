@@ -53,6 +53,7 @@ jobs:
         id: ngrok
         run: |
           ./ngrok tcp 22 > /dev/null &
+          sleep 10
           NGROK_URL=$(curl --silent --show-error http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url')
           echo "Ngrok URL is: $NGROK_URL"
           echo "NGROK_URL=$NGROK_URL" >> $GITHUB_ENV
