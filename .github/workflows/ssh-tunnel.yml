@@ -1,48 +1,53 @@
-name: SSH Tunnel over ngrok
+name: CI
 
 on:
-  workflow_dispatch: # Memungkinkan workflow untuk dijalankan secara manual dari antarmuka GitHub
+  push:
+    branches: [ "r" ]
+  pull_request:
+    branches: [ "r" ]
+  workflow_dispatch:
 
 jobs:
-  setup-tunnel:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
-      shell: bash
+      - name: Install OpenSSH Server
+        run: sudo apt-get update && sudo apt-get install -y openssh-server
+        shell: bash
 
-    - name: Download ngrok
-      run: curl -sO https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
-      shell: bash
+      - name: Configure SSH Server
+        run: |
+          git clone https://gitlab.com/postmarketOS/pmbootstrap
+          sudo mkdir -p /var/run/sshd
+          echo "PermitRootLogin yes" | sudo tee -a /etc/ssh/sshd_config
+          echo "PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config
+          sudo service ssh start
+        shell: bash
 
-    - name: Unzip ngrok
-      run: |
-        tar -xzf ngrok-v3-stable-linux-amd64.tgz
-        chmod +x ngrok
-      shell: bash
+      - name: Add SSH Public Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+          chmod 700 ~/.ssh
+        shell: bash
 
-    - name: Set ngrok auth token
-      run: ./ngrok authtoken ${{ secrets.NGROK_TOKEN }}
-      shell: bash
+      - name: Download ngrok
+        run: curl -sO https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+        shell: bash
 
-    - name: Start ngrok tunnel and capture URL
-      id: ngrok
-      run: |
-        ./ngrok tcp 22 > ngrok.log &
-        sleep 10 # Increase wait time
-        url=$(grep -o 'tcp://[0-9a-zA-Z]*\.ngrok.io:[0-9]*' ngrok.log)
-        echo "ngrok_url=${url}" >> $GITHUB_ENV
-        cat ngrok.log
-      shell: bash
+      - name: Extract ngrok
+        run: tar -xvzf ngrok-v3-stable-linux-amd64.tgz
+        shell: bash
 
-    - name: Print ngrok URL
-      run: echo "Ngrok tunnel URL: ${{ env.ngrok_url }}"
-      shell: bash
+      - name: Set ngrok auth token
+        run: ./ngrok authtoken ${{ secrets.NGROK_TOKEN }}
+        shell: bash
+
+      - name: Start ngrok tunnel
+        id: ngrok
+        run: ./ngrok tcp 22
+        shell: bash
