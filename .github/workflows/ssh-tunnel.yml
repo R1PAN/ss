@@ -34,5 +34,5 @@ jobs:
 
       - name: Start SSH Tunnel
         run: |
-          ssh -o StrictHostKeyChecking=no -R alpine:22:localhost:22 serveo.net &
-          echo "SSH tunnel started."
+          ssh -o StrictHostKeyChecking=no -R alpine:22:localhost:22 serveo.net
+          
