@@ -17,7 +17,11 @@ jobs:
 
       - name: Install OpenSSH Server
         run: sudo apt-get update && sudo apt-get install -y openssh-server
-
+        
+      - name: Set Password for SSH User
+        run: |
+          echo "root:root" | sudo chpasswd
+          
       - name: Configure SSH Server
         run: |
           sudo mkdir -p /var/run/sshd
