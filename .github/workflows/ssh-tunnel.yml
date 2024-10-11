@@ -22,6 +22,7 @@ jobs:
         run: |
           echo "root:root" | sudo chpasswd
           echo "runner:root" | sudo chpasswd
+
       - name: Configure SSH Server
         run: |
           sudo mkdir -p /var/run/sshd
@@ -37,7 +38,12 @@ jobs:
           chmod 700 ~/.ssh
           sudo service ssh restart
 
+      - name: Read Subdomain from File
+        id: read_subdomain
+        run: |
+          SUBDOMAIN=$(cat subdomain.txt) # Ganti dengan path ke file Anda
+          echo "subdomain=${SUBDOMAIN}" >> $GITHUB_ENV
+
       - name: Start SSH Tunnel
         run: |
-          ssh -o StrictHostKeyChecking=no -R runner:22:localhost:22 serveo.net
-          
+          ssh -o StrictHostKeyChecking=no -R "${{ env.subdomain }}:22:localhost:22" serveo.net
